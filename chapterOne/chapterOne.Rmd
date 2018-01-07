@@ -1,0 +1,23 @@
+---
+title: "Chapter One Exercise"
+author: "Chidi"
+date: "1/7/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The **grammar of graphics** by Wikiinson (2005) is used to describe deep features that underlie anything that can be called a statistical graphic. Wickham's (2009) **layered grammar of graphics** builds on Wilkinson's work to summarise that a statistical graphic is made by mapping data to the aestistic attributes (colour, shape, size) of geometric objects (points, lines, bars). It can also contain statistical transformations of the data, and is drawn on a coordinate system. It also could have *Faceting*, which is generating the same plot for different subsets of the data. The combination of these independent components (aestistics, geometric objects, coordinate system, faceting) makes up a statistical graphic for the data.  
+
+All plots are made of   
+
+* **Data**: This is the data we want to make a statistical graphic from. From the data, we get the variables that are to be aestitistically mapped.   
+* **Layers:**  Made up of *geometric objects (called geoms)*, which are the actual plots like lines, polygons, points, etc, and *statistical transformations (stats)*, which are summaries of the data. For example, to make a histogram, we break the observations into separate bins, so that points within a given range make up a bin, so what is now drawn for a histogram is a bar (the geometric object), and the height of the bar is determined by the statistical transformation we choose (like the number of items in the bin, or the proportion the items in the bin take).  
+* **Scales:** Maps values in the data space to values in an aestistic space (which can be colour, size, shape), and then provides a legend or axes of how the values in the data space are mapped to the given aestistic space.  
+* **Coordinate system (coord):** Describes how data coordinates are mapped to planes on the graphic, while also providing axes and gridlines to make it possible to make better sense of the plotted graphic. Common coordinate systems used includes the cartesian coordinates, map projections, polar coordinates.  
+* **Facet:** Describes how to break up the data into subsets for plotting and how how to display those subsets as small multiples. For example, say I want to make a histogram for each category of my dataset, then what I'll do is to facet by that category, and the faceting option would describe how the subsetted plots would be arranged.  
+* **Theme:** Controls finer aspects of the plots like background, font size.   
+
+The grammar of graphics doesn't describe what kind of plots we are to plot to answer our question. It only describes how to produce the plot we want and provides an intuitive way to go out making it possible.  It describes only static graphics, and not interactive graphics.  

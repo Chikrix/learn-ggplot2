@@ -1,0 +1,124 @@
+---
+title: "Exercises"
+author: "Chidi"
+date: "1/9/2018"
+output: html_document
+---
+
+```{r include=FALSE, warning=FALSE, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  comment = "#>",
+  collapse = TRUE,
+  cache = TRUE)
+
+#### Packages
+library(tidyverse)
+library(patchwork)
+```
+
+##### 1. List five functions that you could use to get more information about the mpg dataset.
+
+```{r}
+?mpg # would give me metadata about the dataset
+str(mpg) # Internal structure of the object, column name, type, and first few items 
+# View(mpg) # would show me the full dataset in a clean way
+dim(mpg) # would tell me the dimensions of the dataset
+glimpse(mpg) # Similar to `str`. Shows column names, type, and first few items from each column
+nrow(mpg) # number of rows
+ncol(mpg) # number of columns
+colnames(mpg) # column names. rownames` for row names
+head(mpg) # top 6 items by default, unless n is specified
+tail(mpg) # bottom 6 items by default, unless n is specified
+```
+
+##### 2. How can you find out what other datasets are included with ggplot2?  
+
+```{r}
+data.frame(data(package = "ggplot2")$results)[-c(1,2)]
+```
+
+##### 3. Apart from the US, most countries use fuel consumption (fuel consumed over fixed distance) rather than fuel economy (distance travelled with fixed amount of fuel). How could you convert cty and hwy into the European standard of 1/100km?  
+
+```{r}
+mpg %>%
+  transmute(cty_km = cty * 235.215, hwy_hm = hwy * 235.215)
+```
+
+##### 4. Which manufacturer has the most models in this dataset? Which model has the most variations? Does your answer change if you remove the re-dundant specification of drive train (e.g. “pathfinder 4wd”, “a4 quattro”) from the model name?  
+
+```{r}
+#==== Manufacturer with most models ========
+
+# This first question is quite confusing for me. What I am answering here is, given the models we have here, which manufacturer has the most models. So for example, a manufacturer can have 3 different types of models in the dataset, like audi has a4, a4 quataro, a6 quattro, and so which manufacturer has the most models in this dataset
+mpg %>%
+  count(model, manufacturer) %>%
+  count(manufacturer, sort = TRUE)
+
+# Somehow, I also see it as asking, which manufacturer has the most cars (models) in the dataset
+mpg %>%
+  count(manufacturer, sort = TRUE)
+
+#==== Model with most variations ==== 
+## I'm assuming that by variation, then we mean the `drv` variable
+
+# With re-dundant specification of drive train (e.g. “pathfinder 4wd”, “a4 quattro”)
+with_specs = mpg %>%
+  count(model, drv, sort = TRUE) %>%
+  mutate(fac_model = factor(model, levels = model[order(n)]))
+# Without re-dundant specification of drive train (e.g. “pathfinder 4wd”, “a4 quattro”)
+# this involves removing 4wd, 2wd, quattro, solara
+
+without_specs = mpg %>%
+  mutate(models = gsub(" 4wd| 2wd| quattro| solara", "", model)) %>%
+  count(models, drv, sort = TRUE)
+
+with_specs2 = mpg %>%
+  count(model, drv, sort = TRUE) %>%
+  mutate(fac_model = factor(model, levels = model[order(n)])) %>%
+  group_by(fac_model) %>%
+  count(fac_model, wt = n, sort = TRUE)
+
+without_specs2 = mpg %>%
+  mutate(models = gsub(" 4wd| 2wd| quattro| solara", "", model)) %>%
+  count(models, drv, sort = TRUE) %>%
+  group_by(models) %>%
+  count(models, wt = n, sort = TRUE) %>%
+  ungroup() %>%
+  mutate(fac_model = factor(models, levels = models[order(nn)]))
+
+# Removing the drive specs changed the variation distributionnslightly
+
+#
+ggplot(without_specs, aes(models, n)) +
+  geom_col(aes(fill = drv)) +
+  coord_flip() + 
+  ylab("Count") +
+  xlab("Models") +
+plot_spacer() +
+ggplot(with_specs, aes(fac_model, n)) +
+  geom_col(aes(fill = drv)) +
+  coord_flip() +
+  xlab("Models") +
+  ylab("Count") 
+```
+
+One thing to note from the above graph, the model with the highest variation is `a4`, I couldn't order it because `a4` model has both *4* and *f* `drv` types, so I won't be able to create the plot above because of that as I'll like to colour based on `drv`. A better graph would be the one below 
+
+```{r }
+ggplot(without_specs2, aes(fac_model, nn)) +
+  geom_col() +
+  coord_flip() + 
+  ylab("Count") +
+  xlab("Models") +
+plot_spacer() +
+ggplot(with_specs2, aes(fac_model, nn)) +
+  geom_col() +
+  coord_flip() +
+  xlab("Models") +
+  ylab("Count") 
+```
+
+
+
+

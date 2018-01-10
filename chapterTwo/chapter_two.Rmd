@@ -1,0 +1,23 @@
+---
+title: "Getting started with ggplot2"
+author: "Chidi"
+date: "1/9/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, echo=FALSE, message=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  comment = "#>",
+  collapse = TRUE,
+  cache = TRUE)
+```
+
+```{r warning = FALSE, echo = TRUE, message = FALSE}
+library(ggplot2)
+mpg
+# View(mpg)
+```
+
+
+

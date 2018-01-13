@@ -17,6 +17,8 @@ library(tidyverse)
 library(patchwork)
 ```
 
+### 2.2.1  
+
 ##### 1. List five functions that you could use to get more information about the mpg dataset.
 
 ```{r}
@@ -119,6 +121,118 @@ ggplot(with_specs2, aes(fac_model, nn)) +
   ylab("Count") 
 ```
 
+### 2.3.1  
+
+##### 1. How would you describe the relationship between cty and hwy? Do you have any concerns about drawing conclusions from that plot?  
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_jitter()
+```
+
+Looking at the plot above, at least it says that the higher the `cty`, the higher the `hwy`. So I don't really find an outlier here, so I won't say there's an issue here. So generally, the lower the *cty* or *hwy*, the better. so a car that has a low *cty* would also have a low *hwy*.  
+
+##### 2. What does ggplot(mpg, aes(model, manufacturer)) + geom_point() show? Is it useful? How could you modify the data to make it more informative?  
+
+```{r}
+ggplot(mpg, aes(model, manufacturer)) +
+  geom_point()
+```
+
+Some issues I find with the plot, first, its not easy to understand what's the x axis labels are (unless I coord_flip), secondly, the variables together for this kind of plot isn't really intuitive (so ideally, I'll change the kind of geom I'm using here). Some changes I can is to reduce the number of categories on congested axis (like removing the drv specifications in the model variable), or flip the plot (or rotate the x axis), create a map for the congested axis categories, the keys being shorter names that would be shown on the plot.  
+
+##### 3. Describe the data, aesthetic mappings and layers used for each of the following plots. You’ll need to guess a little because you haven’t seen all the datasets and functions yet, but use your common sense! See if you can predict what the plot will look like before running the code.  
+1. ggplot(mpg, aes(cty, hwy)) + geom_point()   
+2. ggplot(diamonds, aes(carat, price)) + geom_point()  
+3. ggplot(economics, aes(date, unemploy)) + geom_line()  
+4. ggplot(mpg, aes(cty)) + geom_histogram()  
+
+ 1 **data** = *mpg*, **aestistic mapping** = *cty* and *hwy*, **layers** = `geom_point`  
+ 2 **data** = *diamonds*, **aestistic mapping** = *carat* and *price*, **layers** = `geom_point`  
+ 3 **data** = *economics*, **aestistic mapping** = *date* and *unemploy*, **layers** = `geom_line`  
+ 4 **data** = *mpg*, **aestistic mapping** = *cty*, **layers** = `geom_histogram`
 
 
 
+
+
+
+### 2.4.1  
+
+##### 1. Experiment with the colour, shape and size aesthetics. What happens when you map them to continuous values? What about categorical values? What happens when you use more than one aesthetic in a plot?  
+
+```{r}
+p1 <- ggplot(mpg, aes(cty, hwy, colour = class)) +
+  geom_jitter() + ggtitle("A")
+p2 <- ggplot(mpg, aes(displ, hwy, shape = drv)) +
+  geom_point() + ggtitle("B")
+p3 <- ggplot(mpg, aes(cty, hwy, size = displ)) +
+  geom_jitter() + ggtitle("C")
+p4 <- ggplot(mpg, aes(cty, hwy, colour = displ)) +
+  geom_jitter() +
+  ggtitle("D")
+
+(p4 + (p1 + p2) + p3  + plot_layout(ncol = 1))
+
+ggplot(mpg, aes(hwy, cty, colour = class, shape = drv)) +
+  geom_jitter()
+```
+
+When I try to map a continuous variable to a shape aestistic property, it throws an error, also, mapping a shape to a variable with lots of categories wouldn't scale all categories, and so we'll see categories that are empty. However, if we map a colour to a continuous variable, it can be useful depending on how we see it, as it produces a colour pallete scale for the continuous variable, ans shows how this is mapped in the legend. Applying more than one aestistic property mapping still returns a legend of the scaling used for each of the aestistic mapping.  
+
+##### 2. What happens if you map a continuous variable to shape? Why? What happens if you map trans to shape? Why?  
+
+Mapping a continuous variable to a shape throws an error, this could be because there's not enough shapes to scale the continuous variable
+
+```{r}
+ggplot(mpg, aes(hwy, displ, shape = trans)) +
+  geom_point()
+```
+
+Mapping *trans* variable to a shape creates a legend that shows that it couldn't scale all trans categories to shapes as seen in the empty categories on the legend, it then shows a warning explaining why, basically because it couldn't map the categories to a shape pallete, as there're more categories than the required number of shapes in the shape pallete (6 by default).  
+
+##### 3. How is drive train related to fuel economy? How is drive train related to engine size and class?  
+
+```{r}
+ggplot(mpg, aes(reorder(drv, cty, FUN = median), cty)) +
+  geom_boxplot() +
+  xlab("Drive train") +
+  ylab("Fuel Economy")
+
+p1 <- ggplot(mpg, aes(drv, displ)) +
+  geom_boxplot(aes(fill = drv))
+
+p2 <- ggplot(mpg, aes(drv, displ)) +
+  geom_jitter() +
+  geom_boxplot(aes(fill = class))
+
+p3 <- ggplot(mpg, aes(drv, displ)) +
+  geom_boxplot(aes(fill = reorder(class, displ, FUN = median))) +
+  labs(fill = "Car Class")
+
+p4 <- ggplot(mpg, aes(class, displ)) +
+  geom_jitter(aes(colour = drv)) 
+
+# p1 + p2 + p3 + p4  + plot_layout(ncol = 1)
+p1;p2;p3;p4
+```
+
+From the above, I see that Front wheel drive (f) has the best fuel economy (cty, although, hwy would provide the same result).  I see that, for all drive train types, subcompat and compat cars usually have the least 
+engine displacement. Also, for 2 seater buses, there're mostly rear wheeled cars, and rear wheeled cars has the highest engine displacement.  
+
+Facetting is another approach for displaying additional categorical variables on a plot. Facetting creates the same plot for each subset of the category we're facetting on. There're two types of facetting, which are grid or wrap facetting. We facet using the functions `facet_wrap()` or `facet_grid()`, the arguments passed to these functions are the categories we want to facet on. `facet_wrap` takes a formula (`~`) followed by the variable name, and `facet_grid` takes the variables names separated by a formula sign ~.   
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  facet_wrap(~class)
+```
+
+
+### 2.5.1  
+
+##### 1. What happens if you try to facet by a continuous variable like hwy? What about cyl? What’s the key difference?  
+
+```{r}
+
+```

@@ -15,9 +15,32 @@ knitr::opts_chunk$set(
 
 ```{r warning = FALSE, echo = TRUE, message = FALSE}
 library(ggplot2)
-mpg
-# View(mpg)
+library(patchwork)
 ```
 
+Every ggplot2 plot has 3 key components, the data, the aestistic mapping, and the geom. These three components are required at least for making a geom, geoms are used to create layers in a ggplot, and at least one layer is required. 
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point()
+```
+
+In the above, the data is *mpg*, the aestistic mapping I used was mapping the `displ` variable on the x axis to the `hwy` on the y axis, and the layer I used was points (the geom function).  Also, we can map additional variables to aestistics using aestistic properties like shape, color, size, we add this mapping in the aestistic mapping argument of the geom layer, or ggplot call, ggplot2 handles the mapping by converting the variable into *scales*, this scaling also produces an axis or legend that describes the scale used for that variables aestistic mapping. For example;  
+
+```{r}
+ggplot(mpg, aes(displ, cty, colour = class)) +
+  geom_point()
+```
+
+Generally, we add other plot beautifying attributes that aren't aestistic mapping outside the `aes()` call in the layer or ggplot call, but aestistic mapping has to be done inside the `aes()` call  
+
+```{r} 
+ggplot(mpg, aes(displ, hwy)) + geom_point(aes(colour = "blue")) +
+ggplot(mpg, aes(displ, hwy)) + geom_point(colour = "blue")
+```
+
+In the left plot for the one above, ggplot2 assumes the `colour = "blue"` inside the `aes()` argument is an aestistic mapping and so colours all points with its scaling, and provides a legend for this (which isn't useful), the other plot shows the intended goal, colouring the points blue, not an aestistic mapping.  
+
+Different aestistic mapping works well for different types of variables, like colour and shape works well for categorical variables, while size works well for continuous variable. One reason for this is because the colour or shapes scaling would be exausted when one tries to use them on a continuous variable, as compared to size, on the other hand, size may not be easy to discern for categories. So as a general rule, the amount of possible scaling categories should influence the kind of aestistic property to be used, if there's a lot, it can be hard to easily grasp the groups available, so the lesser the better. Instead of creating one complex plot that shows all, its better to create a series of smaller, easy to understand plots.  
 
 

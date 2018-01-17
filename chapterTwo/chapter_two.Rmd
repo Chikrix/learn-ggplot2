@@ -16,9 +16,12 @@ knitr::opts_chunk$set(
 ```{r warning = FALSE, echo = TRUE, message = FALSE}
 library(ggplot2)
 library(patchwork)
+library(mgcv)
+library(MASS)
+library(tidyverse)
 ```
 
-Every ggplot2 plot has 3 key components, the data, the aestistic mapping, and the geom. These three components are required at least for making a geom, geoms are used to create layers in a ggplot, and at least one layer is required. 
+Every ggplot2 plot has 3 key components, the data, the aestistic mapping, and the geom. These three components are required at least for making a plot. geoms are used to create layers in a ggplot, and at least one layer is required. 
 
 ```{r}
 ggplot(mpg, aes(displ, hwy)) +
@@ -43,4 +46,135 @@ In the left plot for the one above, ggplot2 assumes the `colour = "blue"` inside
 
 Different aestistic mapping works well for different types of variables, like colour and shape works well for categorical variables, while size works well for continuous variable. One reason for this is because the colour or shapes scaling would be exausted when one tries to use them on a continuous variable, as compared to size, on the other hand, size may not be easy to discern for categories. So as a general rule, the amount of possible scaling categories should influence the kind of aestistic property to be used, if there's a lot, it can be hard to easily grasp the groups available, so the lesser the better. Instead of creating one complex plot that shows all, its better to create a series of smaller, easy to understand plots.  
 
+There're many possible geom layers in ggplot2, the most commonly used ones includes;  
 
+`geom_smooth()` - fits a smoother to the data and displays the smooth and its standard error  
+`geom_boxplot()` - produces a box and whisker plot to summarise the distribution of a set of points  
+`geom_histogram()` and `geom_freqppoly()` - shows the distribution of continuous variables  
+`geom_bar()` - shows the distribution of categorical variables  
+`geom_path()` and `geom_line()` - draws a line between data points. While both draw lines between points, the main difference is that, a line plot would draw lines from left to right, usually used to show how things change over time. A path lines go in any direction.  
+
+##### Adding a smoother to a plot - `geom_smooth`   
+
+If we have a scatterplot, it might be useful to add a smoother to the plot so we can see a pattern in the scatterplot;  
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth()
+```
+
+The above draws smooth curve over the scatterplot, as well as a grey area around the curve showing the confidence interval (which can be hidden by setting `se = FALSE` argument in `geom_smooth`). The `method` argument is used to tell geom_smooth which type of model to be used to fit the smooth curve. There methods could be loess, glm, rlm, lm, gam. You can check the documentation of `geom_smooth` for this. And to learn more about the some of these method types, I can do something like `?loess` to know what kind of model it is. The `gam` method is loaded by the **mgcv** package, and so to use it, we need to load the package first and use as shown below. Same with the "rlm" method, we need to first import the **MASS** package. The wiggleness of the line is controlled by the `span` argument, and its takes values ranging from 0 to 1. eg;  
+
+```{r}
+## gam method is used like this (note that mgcv package has been loaded already)
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = "gam", formula = y ~ s(x)) +
+  ggtitle("Using gam method") +
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = "rlm") + # already a base r method
+  ggtitle("Using rlm method")
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(span = 0.2) +
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(span = 1) +
+plot_layout(nrow = 1)
+```
+
+##### Boxplots and jittered points   
+
+When the data involves categorical values and a continuous variable, we might be interested in how the values in the continuous variable relates to the different categories. Say I have the following plot  
+
+```{r}
+ggplot(mpg, aes(drv, hwy)) +
+  geom_point()
+```
+
+The problem with the plot above is that there'll be overplotting (many points plotted in the same location), which makes it difficult to see the distribution for points on each category. To fix that, what we can do is  
+
+* we can jitter the points in each category (which adds some random noise around the points to reduce the effect of overplotting for each category)  
+* use a boxplot, which would summarise the shape of the distribution for each category    
+* or use a violin plot, which shows a compat representation of the density of the distribution, highlighting areas where there're more points    
+
+```{r}
+ggplot(mpg, aes(drv, hwy)) + geom_jitter()  +
+ggplot(mpg, aes(drv, hwy)) + geom_boxplot() +
+ggplot(mpg, aes(drv, hwy)) + geom_violin()  +
+plot_layout(nrow = 1)
+```
+
+Each of the geoms above also allows some kind of aestistic property that can be used, for example, boxplot and violin plots can use fill aestistic property, jitter can use shape aestistic for example.  
+
+#####  Histograms and frequency polygons  
+
+Histograms and frequency polygons shows the distribution of a single numeric variable.  
+
+```{r}
+ggplot(mpg, aes(hwy)) + geom_histogram() +
+ggplot(mpg, aes(hwy)) + geom_freqpoly() +
+plot_layout(ncol = 2)
+```
+
+We can control the width of the bins using the `binwidth`. Its very important to experiment with different binwidths, the default splits the variable into 30 bins.   
+
+```{r}
+ggplot(mpg, aes(hwy)) + geom_freqpoly(binwidth = 2.5) +
+ggplot(mpg, aes(hwy)) + geom_freqpoly(binwidth = 1) 
+```
+
+An alternative to `geom_freqpoly` is `geom_density`. We can add more variables to aestestic values like fill (for histogram) or colour (for freqpoly). Its easier to compare categories with a freq poly because, and we can add facetting to this as well (this makes comparisons harder, but its easier to see the distribution for each category)  
+
+```{r}
+ggplot(mpg, aes(displ, colour = drv)) +
+  geom_freqpoly(binwidth = 0.5) +
+ggplot(mpg, aes(displ, fill = drv)) +
+  geom_histogram(binwidth = 0.5) +
+  facet_wrap(~drv, ncol = 1)
+```
+
+##### Bar charts  
+
+There're two different kinds of bar chart, one is constructed using unsummarised categorical data in which one observation adds one unit to the height of the bar for that category. The other one is constructed using presummarised data, in this case, each observation is the height of the bar and the category.  
+
+```{r}
+# using unsumarised categories
+ggplot(mpg, aes(manufacturer)) +
+  geom_bar() 
+
+drugs <- tibble(drug  = c("a", "b", "c"),
+               effect = c(4.2, 9.7, 6.1))
+
+# with presummarised categorical variables
+ggplot(drugs, aes(drug, effect)) + geom_bar(stat = "identity") +
+ggplot(drugs, aes(drug, effect)) + geom_point()
+
+```
+
+Note the `stat` argument in the `geom_bar` to plot the second type of bar chart I described above. By default, the stat used to draw a bar chart which bins the data and counts it (as the height of the bin (the category))  
+
+##### Time series with line and path plots  
+
+Line and path plots are typically used for plotting time series data. Line plots joins the points from left to right, while path plot joins points in the order which they appear in the dataset.  Line plots usually have time on the x axis, showing how a single variable has changed over a certain period of time. Path plots shows how two variables have simultaneously changed over time. 
+
+```{r}
+ggplot(economics, aes(date, unemploy / pop)) +
+  geom_line() +
+ggplot(economics, aes(date, unemploy)) +
+  geom_line()
+
+ggplot(economics, aes(unemploy / pop, uempmed)) +
+  geom_path() +
+  geom_point()
+
+year <- function(x) as.POSIXlt(x)$year + 1900 
+
+ggplot(economics, aes(unemploy / pop, uempmed)) +
+  geom_path(colour = "grey50") +
+  geom_point(aes(colour = year(date)))
+
+```

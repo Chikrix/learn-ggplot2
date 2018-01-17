@@ -265,7 +265,7 @@ Argument used to wrap the number of rows and columns are `nrow` and `ncol` respe
 ```{r}
 ggplot(mpg, aes(displ, cty)) +
   geom_point() +
-  facet_wrap(~cyl, ncol = 1, scales = "free_y")
+  facet_wrap(~cyl, ncol = 1)
 ```
 
 ##### 4. What does the scales argument to facet_wrap() do? When might you use it?  

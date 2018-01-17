@@ -176,5 +176,5 @@ year <- function(x) as.POSIXlt(x)$year + 1900
 ggplot(economics, aes(unemploy / pop, uempmed)) +
   geom_path(colour = "grey50") +
   geom_point(aes(colour = year(date)))
-
 ```
+

@@ -272,3 +272,115 @@ ggplot(mpg, aes(displ, cty)) +
 
 Scales sets the values of the x and/or y axis. Using a fixed scale (the default) would always show the same values on the x and y axis for all facets in the plot, using a free scale would show different values on the x and y axis depending on the distribution of the values for each subset, using free_y or free_x would set only that axis free, and the other axis would be fixed for each subset. I think this can be useful in cases of overplotting due to fixed coordinate values.  
 
+
+
+
+### 2.6.6   
+
+##### 1. What’s the problem with the plot created by ggplot(mpg, aes(cty, hwy)) + geom_point()? Which of the geoms described above is most effective at remedying the problem?  
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point()
+```
+
+I think there's the problem of overplotting in the plot. A better geom would be `geom_jitter()`  
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_jitter()
+```
+
+##### 2. One challenge with ggplot(mpg, aes(class, hwy)) + geom_boxplot() is that the ordering of class is alphabetical, which is not terribly useful. How could you change the factor levels to be more informative?
+Rather than reordering the factor by hand, you can do it automatically based on the data: ggplot(mpg, aes(reorder(class, hwy), hwy)) + geom_boxplot(). What does reorder() do? Read the documentation.  
+
+```{r}
+ggplot(mpg, aes(class, hwy)) +
+  geom_boxplot() +
+ggplot(mpg, aes(reorder(class, hwy, FUN = median), hwy)) +
+  geom_boxplot()
+```
+
+`reorder` changes the orders of the levels of its first argument based on the values of the second argument (usually a numeric vector). This is its default behaviour. This default behaviour splits the second argument by the categories of the first, and then calculates a given summary (provided by the FUN argument) on each of the group, the default operation being the mean, it then orders the levels of the first variable by the calculated summary.  
+
+##### 3. Explore the distribution of the carat variable in the diamonds dataset. What binwidth reveals the most interesting patterns?  
+
+```{r}
+ggplot(diamonds, aes(carat)) +
+  geom_freqpoly() +
+  ggtitle("Default") +
+ggplot(diamonds, aes(carat)) +
+  geom_freqpoly(binwidth = 0.5) +
+  ggtitle("binwidth = 0.5") +
+ggplot(diamonds, aes(carat)) +
+  geom_freqpoly(binwidth = 0.2) +
+  ggtitle("binwidth = 0.2") +
+ggplot(diamonds, aes(carat)) +
+  geom_freqpoly(binwidth = 0.1) +
+  ggtitle("binwidth = 0.1") +
+plot_layout(ncol = 2)
+```
+
+Looking at the plots above, I think as the size of the bins got smaller, the pattern became clearer (may not always hold true), I preferred the one with binwidth = 0.2, but the default and 0.1 are also good.  
+
+##### 4. Explore the distribution of the price variable in the diamonds data. How does the distribution vary by cut?
+
+```{r warning = FALSE, message=FALSE}
+default_binwidth = diff(range(diamonds$price)) / 30
+
+p1 <- ggplot(diamonds, aes(price)) +
+  geom_histogram() 
+
+p2 <- ggplot(diamonds, aes(price)) +
+  geom_freqpoly(aes(colour = cut)) 
+
+p3 <- ggplot(diamonds, aes(reorder(cut, price, FUN = median), price)) +
+  geom_violin() +
+  xlab("cut") +
+  coord_flip() 
+
+p4 <- ggplot(diamonds, aes(reorder(cut, price, FUN = median), price)) +
+  geom_boxplot() +
+  xlab("cut") +
+  coord_flip() 
+
+p5 <- ggplot(diamonds, aes(price)) +
+  geom_histogram() +
+  facet_wrap(~cut) 
+
+p5 + (p1 + p2 + p3 + p4) + plot_layout(ncol = 1, widths = 1, heights = 3)
+
+```
+
+##### 5 You now know (at least) three ways to compare the distributions of subgroups: geom_violin(), geom_freqpoly() and the colour aesthetic, or geom_histogram() and facetting. What are the strengths and weaknesses of each approach? What other approaches could you try?  
+
+While I like the visual of the violin plot, I'm not a big fan of it as it was hard to interpret, given how easy for each violin would look similar to each other, like the example in the previous plot shows. For showing the distribution of a single variable across different categories, I preferred using a freqpoly over facetting, because it was easy to see and compare this variation across the different categories. Normally, I think its easier sometimes to see different when using aestistic properties on the same plot (I think so long as we're scaling with a few aestistic properties on the same plot). Facetting I think would shine when there're more than two variabes involved, it all depends though, but at least for the ones I've convered so far. One approach I'll try is using a scatterplot with some given aestistic property to add other dimensions. For freqpoly and histogram, both could be hard/misleading to interpret due to the fact that one needs to set a nice binwidth in order to see some pattern, but the good thing here is that, when a good binwidth is set, its a great way to see the pattern in the data.  
+
+##### 6. Read the documentation for geom_bar(). What does the weight aesthetic do?  
+
+`geom_bar` is used to create bar charts (see my [notes on barcharts](chapter_two.Rmd)). The weight aestistic is used to calculate the height of each bar bar summing the argument presented to it and using that as the height of the category  
+
+```{r}
+ggplot(diamonds, aes(cut, weight = carat)) +
+  geom_bar()
+
+# the data used to make the bar chart above is computed with the following, and the `geom_col` can be used to plot the chart above using the computation below  
+diamonds %>%
+  group_by(cut) %>%
+  count(wt = carat)
+```
+
+##### 7. Using the techniques already discussed in this chapter, come up with three ways to visualise a 2d categorical distribution. Try them out by visualising the distribution of model and manufacturer, trans and class, and cyl and trans.  
+
+```{r}
+ggplot(mpg, aes(manufacturer, fill = drv)) +
+  geom_bar(position = "dodge")
+
+ggplot(mpg, aes(class)) + 
+  geom_bar() +
+  facet_wrap(~drv)
+
+ggplot(mpg, aes(x = trans, y = cyl)) +
+  geom_bar(stat = "identity")
+
+```

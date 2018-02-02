@@ -383,4 +383,13 @@ ggplot(mpg, aes(class)) +
 ggplot(mpg, aes(x = trans, y = cyl)) +
   geom_bar(stat = "identity")
 
+numbers = c(1,24,5,66,7,7,84,24)
+odd_numbers = integer()
+
+for (num in numbers) {
+  if (num %% 2 != 0) {
+    odd_numbers = append(odd_numbers, num)
+  }
+}
 ```
+
